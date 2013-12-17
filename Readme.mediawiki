@@ -1,0 +1,6 @@
+UserFPGA IP core of SpaceWire 8ch ADCBox
+
+==Revisions==
+*userfpga_20131216_1837.mcs
+**TriggerBus was implemented to perform a coincidence experiment without an external trigger logic.
+*Older version were developed for the Master Thesis of TY, and used in several projects for reading out waveform data.
