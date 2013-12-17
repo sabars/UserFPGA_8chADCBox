@@ -1,0 +1,11 @@
+Storage Target: Xilinx Flash/PROM
+Storage Family: Platform Flash
+xcf08p          [8 M]
+FF
+userfpga_20131216_1837.mcs
+C:\spc\UserFPGA_8chADCBox\
+
+MCS
+Yes
+1
+No

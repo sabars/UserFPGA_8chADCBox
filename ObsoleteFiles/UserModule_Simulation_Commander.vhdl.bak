@@ -1,0 +1,418 @@
+--UserModule_Simulation_Commander.vhdl
+--
+--SpaceWire Board / User FPGA / Modularized Structure Template
+--UserFPGA Simulation / Commander
+--
+--ver20071128 Takayuki Yuasa
+--added waveform generator
+--ver20071030 Takayuki Yuasa
+--file created
+
+---------------------------------------------------
+--Declarations of Libraries
+---------------------------------------------------
+library ieee,work;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
+use work.iBus_Library.all;
+use work.iBus_AddressMap.all;
+use work.UserModule_Library.all;
+
+---------------------------------------------------
+--Entity Declaration
+---------------------------------------------------
+entity UserModule_Simulation_Commander is
+	generic(
+		InitialAddress	:	std_logic_vector(15 downto 0) := (others=>'0');
+		FinalAddress	:	std_logic_vector(15 downto 0) := (others=>'0')
+	);
+	port(
+		--signals connected to BusController
+		BusIF2BusController	:	out	iBus_Signals_BusIF2BusController;
+		BusController2BusIF	:	in		iBus_Signals_BusController2BusIF;
+		--other signals
+		Start	:	in	std_logic;
+		ADC	:	out std_logic_vector(AdcResolution-1 downto 0);
+		--clock and reset
+		Clock			:	in		std_logic;
+		GlobalReset	:	in		std_logic
+	);
+end UserModule_Simulation_Commander;
+
+---------------------------------------------------
+--Behavioral description
+---------------------------------------------------
+architecture Behavioral of UserModule_Simulation_Commander is
+
+	---------------------------------------------------
+	--Declarations of Components
+	---------------------------------------------------
+
+	--BusIF used for BusProcess(Bus Read/Write Process)
+	component iBus_BusIF
+		generic(
+			InitialAddress	:	std_logic_vector(15 downto 0);
+			FinalAddress	:	std_logic_vector(15 downto 0)
+		);
+		port(
+			--connected to BusController
+			BusIF2BusController	:	out	iBus_Signals_BusIF2BusController;
+			BusController2BusIF	:	in		iBus_Signals_BusController2BusIF;
+			--connected to UserModule
+			BusIF2UserModule		:	out	iBus_Signals_BusIF2UserModule;
+			UserModule2BusIF		:	in		iBus_Signals_UserModule2BusIF;
+			Clock					:	in		std_logic;
+			GlobalReset			:	in		std_logic
+		);
+	end component;
+
+	component UserModule_Simulation_Waveform1
+		port(
+			Start		:	in	std_logic;
+			waveform	:	out std_logic_vector(15 downto 0);
+			--clock and reset
+			Clock			:	in		std_logic;
+			GlobalReset	:	in		std_logic
+		);
+	end component;
+
+	---------------------------------------------------
+	--Declarations of Signals
+	---------------------------------------------------
+	
+	signal ADC_internal	: std_logic_vector(AdcResolution-1 downto 0) := (others => '0');
+	signal counter			: integer := 0;
+	
+	signal wave			: std_logic_vector(15 downto 0) := (others=>'0');
+	signal wave_start	: std_logic := '0';
+	signal wave_reset	: std_logic := '1';
+	
+	--Signals used in iBus process
+	signal BusIF2UserModule		:	iBus_Signals_BusIF2UserModule;
+	signal UserModule2BusIF		:	iBus_Signals_UserModule2BusIF;
+	
+	--State Machines' State-variables
+	type iBus_Receive_StateMachine_State is 
+		(Initialize,	Idle,	DataReceive_wait,	DataReceive);
+	signal iBus_Receive_state : iBus_Receive_StateMachine_State := Initialize;
+	
+	type iBus_beRead_StateMachine_State is
+		(Initialize,	Idle,	WaitDone);
+	signal iBus_beRead_state : iBus_beRead_StateMachine_State := Initialize;
+	
+	type UserModule_StateMachine_State is
+		(Initialize,Idle,PDWN_ADC, PON_ADC,
+		SetTrigMode,SetNumberOfSamples,SetDepthOfDelay,
+		SetTh,SetTh_2,SetGate_Fast,SetGate_Slow,SetLTMode,SetLT,
+		RequestSemaphore,CheckSemaphore,WaitCheckSemaphore,GotSemaphore,
+		ReleaseSemaphore,CheckReleaseSemaphore,WaitCheckReleaseSemaphore,
+		ReadOut_ClockWait,
+		ReadOut,WaitReadOut,ReadOut_2,WaitReadOut_2,
+		UpdateReadPointer,UpdateReadPointer_2,UpdateReadPointer_3,UpdateReadPointer_4,
+		UpdateReadPointer_5,UpdateReadPointer_6,UpdateReadPointer_7,UpdateReadPointer_8,
+		ReadLivetime,ReadLivetime_2,Finalize);
+	signal UserModule_state : UserModule_StateMachine_State := Initialize;
+	
+	--Registers
+	constant BA	:	std_logic_vector(15 downto 0) := InitialAddressOf_ChModule_0; --Base Address of ChModule0
+	constant AddressOf_TriggerModeRegister			:	std_logic_vector(15 downto 0) := BA+x"0002";
+	constant AddressOf_NumberOfSamplesRegister	:	std_logic_vector(15 downto 0) := BA+x"0004";
+	constant AddressOf_ThresholdStartingRegister	:	std_logic_vector(15 downto 0) := BA+x"0006";
+	constant AddressOf_ThresholdClosingRegister	:	std_logic_vector(15 downto 0) := BA+x"0008";
+	constant AddressOf_AdcPowerDownModeRegister	:	std_logic_vector(15 downto 0) := BA+x"000a";
+	constant AddressOf_DepthOfDelayRegister		:	std_logic_vector(15 downto 0) := BA+x"000c";
+	constant AddressOf_LivetimeRegisterL			:	std_logic_vector(15 downto 0) := BA+x"000e";
+	constant AddressOf_LivetimeRegisterH			:	std_logic_vector(15 downto 0) := BA+x"0010";
+	
+	constant ChMgrBA	:	std_logic_vector(15 downto 0) := InitialAddressOf_ChMgr; --Base Address of ChMgr
+	constant AddressOf_StartStopRegister				: std_logic_vector(15 downto 0) := ChMgrBA+x"0002";
+	constant AddressOf_StartStopSemaphoreRegister	: std_logic_vector(15 downto 0) := ChMgrBA+x"0004";
+	constant AddressOf_PresetModeRegister				: std_logic_vector(15 downto 0) := ChMgrBA+x"0006";
+	constant AddressOf_PresetLivetimeRegisterL		: std_logic_vector(15 downto 0) := ChMgrBA+x"0008";
+	constant AddressOf_PresetLivetimeRegisterH		: std_logic_vector(15 downto 0) := ChMgrBA+x"000a";
+	constant AddressOf_RealtimeRegisterL				: std_logic_vector(15 downto 0) := ChMgrBA+x"000c";
+	constant AddressOf_RealtimeRegisterM				: std_logic_vector(15 downto 0) := ChMgrBA+x"000e";
+	constant AddressOf_RealtimeRegisterH				: std_logic_vector(15 downto 0) := ChMgrBA+x"0010";
+	constant AddressOf_ResetRegister						: std_logic_vector(15 downto 0) := ChMgrBA+x"0012";
+
+	---------------------------------------------------
+	--Beginning of behavioral description
+	---------------------------------------------------
+	begin	
+	
+	---------------------------------------------------
+	--Instantiations of Components
+	---------------------------------------------------
+	
+	--Instantiation of iBus_BusIF
+	BusIF : iBus_BusIF
+		generic map(
+			InitialAddress		=>	InitialAddress,
+			FinalAddress		=>	FinalAddress
+		)
+		port map(
+			--connected to BusController
+			BusIF2BusController	=>	BusIF2BusController,
+			BusController2BusIF	=>	BusController2BusIF,
+			--connected to UserModule
+			BusIF2UserModule	=> BusIF2UserModule,
+			UserModule2BusIF	=> UserModule2BusIF,
+			Clock			=>	Clock,
+			GlobalReset	=> GlobalReset
+		);
+
+	inst_waveform_generator : UserModule_Simulation_Waveform1
+		port map(
+			Start		=> wave_start,
+			waveform	=> wave,
+			--clock and reset
+			Clock		=>Clock,
+			GlobalReset	=> GlobalReset
+		);
+
+	---------------------------------------------------
+	--Static relationships
+	---------------------------------------------------
+	Adc <= Adc_Internal;
+	
+	---------------------------------------------------
+	--Dynamic Processes with Sensitivity List
+	---------------------------------------------------
+		
+	--UserModule main state machine
+	MainProcess : process (Clock, GlobalReset)
+	begin
+		--is this process invoked with GlobalReset?
+		if (GlobalReset='0') then
+			--write Reset process here
+			--
+			--
+			--
+			--Initialize StateMachine's state
+			UserModule_state <= Initialize;
+		--is this process invoked with Clock Event?
+		elsif (Clock'Event and Clock='1') then
+			case UserModule_state is
+				when Initialize =>
+					UserModule2BusIF.SendEnable <= '0';
+					UserModule_state <= Idle;
+				when Idle =>
+					if (Start='1') then
+						UserModule_state <= PDWN_ADC;
+					end if;
+				when PDWN_ADC =>
+					UserModule2BusIF.SendAddress <= AddressOf_AdcPowerDownModeRegister;
+					UserModule2BusIF.SendData <= x"ffff";
+					UserModule2BusIF.SendEnable <= '1';
+					UserModule_state <= PON_ADC;
+				when PON_ADC =>
+					UserModule2BusIF.SendAddress <= AddressOf_AdcPowerDownModeRegister;
+					UserModule2BusIF.SendData <= x"0000";
+					UserModule2BusIF.SendEnable <= '1';
+					UserModule_state <= SetTrigMode;
+				when SetTrigMode =>
+					UserModule2BusIF.SendAddress <= AddressOf_TriggerModeRegister;
+					UserModule2BusIF.SendData(NumberOfTriggerMode-1 downto 0) <= Mode_1_StartingTh_NumberOfSamples;
+					UserModule2BusIF.SendEnable <= '3';
+					UserModule_state <= SetNumberOfSamples;
+				when SetNumberOfSamples =>
+					UserModule2BusIF.SendAddress <= AddressOf_NumberOfSamplesRegister;
+					UserModule2BusIF.SendData <= x"0300";
+					UserModule_state <= SetDepthOfDelay;
+				when SetDepthOfDelay =>
+					UserModule2BusIF.SendAddress <= AddressOf_DepthOfDelayRegister;
+					UserModule2BusIF.SendData <= x"0010";
+					UserModule_state <= SetTh;
+				when SetTh =>
+					UserModule2BusIF.SendAddress <= AddressOf_ThresholdStartingRegister;
+					UserModule2BusIF.SendData <= x"0820";
+					UserModule_state <= SetTh_2;
+				when SetTh_2 =>
+					UserModule2BusIF.SendAddress <= AddressOf_ThresholdClosingRegister;
+					UserModule2BusIF.SendData <= x"0820";
+					UserModule_state <= SetLTMode;
+				when SetGate_Fast =>
+					UserModule2BusIF.SendAddress <= AddressOf_GateSize_FastGate_Register;
+					UserModule2BusIF.SendData <= x"0008";
+					UserModule_state <= SetGate_Slow;
+				when SetGate_Slow =>
+					UserModule2BusIF.SendAddress <= AddressOf_GateSize_SlowGate_Register;
+					UserModule2BusIF.SendData <= x"0010";
+					UserModule_state <= SetLTMode;
+				when SetLTMode =>
+					UserModule2BusIF.SendAddress <= AddressOf_PresetModeRegister;
+					UserModule2BusIF.SendData <= x"0001"; --PRESET LT MODE
+					UserModule_state <= SetLT;
+				when SetLT =>
+					UserModule2BusIF.SendAddress <= AddressOf_PresetLivetimeRegisterL;
+					UserModule2BusIF.SendData <= x"00A0"; --PRESET LT Value
+					UserModule_state <= RequestSemaphore;
+				when RequestSemaphore =>
+					UserModule2BusIF.SendEnable <= '1';
+					UserModule2BusIF.SendAddress <= AddressOf_StartStopSemaphoreRegister;
+					UserModule2BusIF.SendData <= x"0001"; --Request Semaphore
+					UserModule_state <= CheckSemaphore;
+				when CheckSemaphore =>
+					UserModule2BusIF.SendEnable <= '0';
+					UserModule2BusIF.ReadAddress <= AddressOf_StartStopSemaphoreRegister;
+					UserModule2BusIF.ReadGo <= '1';
+					if (BusIF2UserModule.ReadDone='0') then
+						UserModule_state <= WaitCheckSemaphore;
+					end if;
+				when WaitCheckSemaphore =>
+					if (BusIF2UserModule.ReadDone='1') then
+						UserModule2BusIF.ReadGo <= '0';
+						if (BusIF2UserModule.ReadData(0)='1') then
+							UserModule_state <= GotSemaphore;
+						else
+							UserModule_state <= RequestSemaphore;
+						end if;
+					end if;
+				when GotSemaphore =>
+					UserModule2BusIF.SendEnable <= '1';
+					UserModule2BusIF.SendAddress <= AddressOf_StartStopRegister;
+					UserModule2BusIF.SendData <= x"0001"; --start
+					UserModule_state <= ReleaseSemaphore;
+				when ReleaseSemaphore =>
+					UserModule2BusIF.SendAddress <= AddressOf_StartStopSemaphoreRegister;
+					UserModule2BusIF.SendData <= x"0000"; --release
+					UserModule_state <= CheckReleaseSemaphore;
+				when CheckReleaseSemaphore =>
+					UserModule2BusIF.SendEnable <= '0';
+					UserModule2BusIF.ReadAddress <= AddressOf_StartStopSemaphoreRegister;
+					UserModule2BusIF.ReadGo <= '1';
+					if (BusIF2UserModule.ReadDone='0') then
+						UserModule_state <= WaitCheckReleaseSemaphore;
+					end if;
+				when WaitCheckReleaseSemaphore =>
+					if (BusIF2UserModule.ReadDone='1') then
+						UserModule2BusIF.ReadGo <= '0';
+						if (BusIF2UserModule.ReadData(0)='0') then
+							UserModule_state <= ReadOut_ClockWait;
+						else
+							UserModule_state <= ReleaseSemaphore;
+						end if;
+					end if;
+				when ReadOut_ClockWait =>
+					if (counter>2000) then
+						UserModule_state <= ReadOut;
+					end if;
+				when ReadOut =>
+					UserModule2BusIF.SendEnable <= '0';
+					UserModule2BusIF.ReadAddress <= AddressOf_WritePointerRegister_High;
+					UserModule2BusIF.ReadGo <= '1';
+					if (BusIF2UserModule.ReadDone='0') then
+						UserModule_state <= WaitReadOut;
+					end if;
+				when WaitReadOut =>
+					if (BusIF2UserModule.ReadDone='1') then
+						UserModule2BusIF.ReadGo <= '0';
+						UserModule_state <= ReadOut_2;
+					end if;
+				when ReadOut_2 =>
+					UserModule2BusIF.SendEnable <= '0';
+					UserModule2BusIF.ReadAddress <= AddressOf_WritePointerRegister_Low;
+					UserModule2BusIF.ReadGo <= '1';
+					if (BusIF2UserModule.ReadDone='0') then
+						UserModule_state <= WaitReadOut_2;
+					end if;
+				when WaitReadOut_2 =>
+					if (BusIF2UserModule.ReadDone='1') then
+						UserModule2BusIF.ReadGo <= '0';
+						UserModule_state <= UpdateReadPointer;
+					end if;
+--				when UpdateReadPointer =>
+--					if (counter>1340) then
+--						UserModule2BusIF.SendAddress <= AddressOf_ReadPointerRegister_Low;
+--						UserModule2BusIF.SendData <= x"000a"; --Read Pointer
+--						UserModule2BusIF.SendEnable <= '1';
+--						UserModule_state <= UpdateReadPointer_2;
+--					end if;
+--				when UpdateReadPointer_2 =>
+--					UserModule2BusIF.SendAddress <= AddressOf_AddressUpdateGoRegister;
+--					UserModule2BusIF.SendData <= x"FFFF"; --Update Read Pointer
+--					UserModule_state <= UpdateReadPointer_3;
+--				when UpdateReadPointer_3 =>
+--					if (counter>1500) then
+--						UserModule2BusIF.SendAddress <= AddressOf_ReadPointerRegister_Low;
+--						UserModule2BusIF.SendData <= x"0004"; --Read Pointer
+--						UserModule2BusIF.SendEnable <= '1';
+--						UserModule_state <= UpdateReadPointer_4;
+--					else
+--						UserModule2BusIF.SendEnable <= '0';
+--					end if;
+--				when UpdateReadPointer_4 =>
+--					UserModule2BusIF.SendAddress <= AddressOf_AddressUpdateGoRegister;
+--					UserModule2BusIF.SendData <= x"FFFF"; --Update Read Pointer
+--					UserModule_state <= UpdateReadPointer_5;
+--				when UpdateReadPointer_5 =>
+--					if (counter>1700) then
+--						UserModule2BusIF.SendAddress <= AddressOf_ReadPointerRegister_Low;
+--						UserModule2BusIF.SendData <= x"000a"; --Read Pointer
+--						UserModule2BusIF.SendEnable <= '1';
+--						UserModule_state <= UpdateReadPointer_6;
+--					else
+--						UserModule2BusIF.SendEnable <= '0';
+--					end if;
+--				when UpdateReadPointer_6 =>
+--					UserModule2BusIF.SendAddress <= AddressOf_AddressUpdateGoRegister;
+--					UserModule2BusIF.SendData <= x"FFFF"; --Update Read Pointer
+--					UserModule_state <= UpdateReadPointer_7;
+--				when UpdateReadPointer_7 =>
+--					if (counter>1800) then
+--						UserModule2BusIF.SendAddress <= AddressOf_ReadPointerRegister_Low;
+--						UserModule2BusIF.SendData <= x"0000"; --Read Pointer
+--						UserModule2BusIF.SendEnable <= '1';
+--						UserModule_state <= UpdateReadPointer_8;
+--					else
+--						UserModule2BusIF.SendEnable <= '0';
+--					end if;
+--				when UpdateReadPointer_8 =>
+--					UserModule2BusIF.SendAddress <= AddressOf_AddressUpdateGoRegister;
+--					UserModule2BusIF.SendData <= x"FFFF"; --Update Read Pointer
+--					UserModule_state <= ReadLivetime;
+--				when ReadLivetime =>
+--					if (counter>1805) then
+--						UserModule2BusIF.SendEnable <= '0';
+--						UserModule2BusIF.ReadAddress <= AddressOf_LivetimeRegisterL;
+--						UserModule2BusIF.ReadGo <= '1';
+--						if (BusIF2UserModule.ReadDone='0') then
+--							UserModule_state <= ReadLivetime_2;
+--						end if;
+--					end if;
+--				when ReadLivetime_2 =>
+--					if (BusIF2UserModule.ReadDone='1') then
+--						UserModule2BusIF.ReadGo <= '0';
+--						UserModule_state <= Finalize;
+--					end if;
+				when Finalize =>
+					UserModule2BusIF.SendEnable <= '0';
+					--UserModule_state <= Idle;
+				when others =>
+					UserModule_state <= Finalize;
+			end case;
+		end if;
+	end process;
+
+	process (Clock, GlobalReset)
+	begin
+		--is this process invoked with GlobalReset?
+		if (GlobalReset='0') then
+		--is this process invoked with Clock Event?
+		elsif (Clock'Event and Clock='1') then
+			counter <= counter + 1;
+			if (counter<620) then
+			elsif (counter>700 and counter<710) then
+				wave_start <= '1';
+				wave_reset <= '1';
+			elsif (counter>710 and counter<710+800) then
+				wave_start <= '0';
+				wave_reset <= '0';
+			elsif (counter>710+800 and counter<710+800+20) then
+				wave_start <= '1';
+				wave_reset <= '1';
+			end if;
+		end if;
+	end process;
+end Behavioral;

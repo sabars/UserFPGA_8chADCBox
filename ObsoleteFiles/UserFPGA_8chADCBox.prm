@@ -1,0 +1,17 @@
+PROMGEN: Xilinx Prom Generator K.31
+Copyright (c) 1995-2008 Xilinx, Inc.  All rights reserved.
+
+promgen -w -p mcs -c FF -o C:\spc\UserFPGA_8chADCBox_20080704_1710\//UserFPGA_8chADCBox.mcs -u 0 C:/spc/UserFPGA_8chADCBox_20080704_1710/user_top.bit -x xcf08p 
+
+PROM C:\spc\UserFPGA_8chADCBox_20080704_1710\//UserFPGA_8chADCBox.prm map: TUE 28 OCT 10:55:23 2008
+
+Calculating PROM checksum with fill value ff
+
+Format        Mcs86 (32-bit)
+Size          1024K
+PROM start    0000:0000
+PROM end      000f:ffff
+PROM checksum 06c6f879
+
+        Addr1        Addr2                     Date File(s)
+    0000:0000    0009:f247     Oct 28 10:49:46 2008 C:/spc/UserFPGA_8chADCBox_20080704_1710/user_top.bit

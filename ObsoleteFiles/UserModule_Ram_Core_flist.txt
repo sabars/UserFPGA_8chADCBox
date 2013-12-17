@@ -1,0 +1,11 @@
+# Output products list for <UserModule_Ram_Core>
+UserModule_Ram_Core.asy
+UserModule_Ram_Core.ngc
+UserModule_Ram_Core.sym
+UserModule_Ram_Core.v
+UserModule_Ram_Core.veo
+UserModule_Ram_Core.vhd
+UserModule_Ram_Core.vho
+UserModule_Ram_Core.xco
+UserModule_Ram_Core_flist.txt
+UserModule_Ram_Core_xmdf.tcl

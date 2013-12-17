@@ -1,0 +1,8 @@
+INTSTYLE=impact
+INFILE=C:\spc\UserFPGA_8chADCBox\impact.xsl
+OUTFILE=C:\spc\UserFPGA_8chADCBox\impact.xsl
+FAMILY=Multiple
+PART=Multiple
+WORKINGDIR=C:\spc\UserFPGA_8chADCBox
+LICENSE=iMPACT
+USER_INFO=iMPACT

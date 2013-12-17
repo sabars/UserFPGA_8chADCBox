@@ -1,0 +1,12 @@
+# Output products list for <UserModule_Fifo_Core>
+UserModule_Fifo_Core.asy
+UserModule_Fifo_Core.ngc
+UserModule_Fifo_Core.sym
+UserModule_Fifo_Core.v
+UserModule_Fifo_Core.veo
+UserModule_Fifo_Core.vhd
+UserModule_Fifo_Core.vho
+UserModule_Fifo_Core.xco
+UserModule_Fifo_Core_fifo_generator_v3_3_xst_1_vhdl.prj
+UserModule_Fifo_Core_flist.txt
+UserModule_Fifo_Core_xmdf.tcl

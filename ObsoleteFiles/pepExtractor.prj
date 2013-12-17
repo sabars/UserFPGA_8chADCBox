@@ -1,0 +1,4 @@
+work	"UserModule_ChModule_DigitalFilterTriggerModule.vhdl"
+work	"UserModule_Library.vhdl"
+work	"iBus_AddressMap.vhdl"
+work	"iBus_Library.vhdl"

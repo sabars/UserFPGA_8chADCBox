@@ -1,0 +1,11 @@
+# PROMGEN: Xilinx Prom Generator P.49d
+# Copyright (c) 1995-2012 Xilinx, Inc.  All rights reserved.
+
+SOFTWARE_VERSION P.49d
+DATE            12/16/2013 - 17:12
+SOURCE          C:\spc\UserFPGA_8chADCBox\userfpga_20131216_1712.mcs
+DEVICE          XCF08P
+DATA_WIDTH      8
+FILL_DATA       0xFF
+SIGNATURE       0x0759427C
+BLOCK 0 VERSION 0 END 0x0759427C

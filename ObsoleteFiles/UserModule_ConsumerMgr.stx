@@ -1,0 +1,33 @@
+Release 9.2.03i - xst J.39
+Copyright (c) 1995-2007 Xilinx, Inc.  All rights reserved.
+--> Parameter TMPDIR set to ./xst/projnav.tmp
+CPU : 0.00 / 0.21 s | Elapsed : 0.00 / 0.00 s
+ 
+--> 
+=========================================================================
+*                          HDL Compilation                              *
+=========================================================================
+Compiling vhdl file "C:/spc/UserFPGA_8chADCBox/iBus_AddressMap.vhdl" in Library work.
+Compiling vhdl file "C:/spc/UserFPGA_8chADCBox/iBus_Library.vhdl" in Library work.
+Compiling vhdl file "C:/spc/UserFPGA_8chADCBox/UserModule_Library.vhdl" in Library work.
+Compiling vhdl file "C:/spc/UserFPGA_8chADCBox/UserModule_Fifo_Core.vhd" in Library work.
+Architecture usermodule_fifo_core_a of Entity usermodule_fifo_core is up to date.
+Compiling vhdl file "C:/spc/UserFPGA_8chADCBox/ibus_fifo.vhd" in Library work.
+Architecture ibus_fifo_a of Entity ibus_fifo is up to date.
+Compiling vhdl file "C:/spc/UserFPGA_8chADCBox/iBus_BusIF.vhdl" in Library work.
+Architecture behavioral of Entity ibus_busif is up to date.
+Compiling vhdl file "C:/spc/UserFPGA_8chADCBox/UserModule_Fifo.vhdl" in Library work.
+Architecture behavioral of Entity usermodule_fifo is up to date.
+Compiling vhdl file "C:/spc/UserFPGA_8chADCBox/UserModule_ConsumerMgr.vhdl" in Library work.
+Entity <usermodule_consumermgr> compiled.
+Entity <usermodule_consumermgr> (Architecture <behavioral>) compiled.
+CPU : 0.49 / 0.70 s | Elapsed : 0.00 / 0.00 s
+ 
+--> 
+
+Total memory usage is 115152 kilobytes
+
+Number of errors   :    0 (   0 filtered)
+Number of warnings :    0 (   0 filtered)
+Number of infos    :    0 (   0 filtered)
+

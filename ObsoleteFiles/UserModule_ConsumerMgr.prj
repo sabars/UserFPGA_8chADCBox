@@ -1,0 +1,8 @@
+vhdl work "iBus_AddressMap.vhdl"
+vhdl work "ibus_fifo.vhd"
+vhdl work "iBus_Library.vhdl"
+vhdl work "UserModule_Library.vhdl"
+vhdl work "UserModule_Fifo_Core.vhd"
+vhdl work "iBus_BusIF.vhdl"
+vhdl work "UserModule_Fifo.vhdl"
+vhdl work "UserModule_ConsumerMgr.vhdl"

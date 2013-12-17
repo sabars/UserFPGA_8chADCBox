@@ -1,0 +1,5 @@
+vhdl work "C:\spc\UserFPGA_8chADCBox\iBus_AddressMap.vhdl"
+vhdl work "C:\spc\UserFPGA_8chADCBox\ibus_fifo.vhd"
+vhdl work "C:\spc\UserFPGA_8chADCBox\iBus_Library.vhdl"
+vhdl work "C:\spc\UserFPGA_8chADCBox\iBus_BusIF.vhdl"
+vhdl work "C:\spc\UserFPGA_8chADCBox\UserModule_LED.vhdl"

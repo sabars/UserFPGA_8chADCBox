@@ -1,0 +1,4 @@
+vhdl work "C:\spc\UserFPGA_ADCBox\iBus_AddressMap.vhdl"
+vhdl work "C:\spc\UserFPGA_ADCBox\iBus_Library.vhdl"
+vhdl work "C:\spc\UserFPGA_ADCBox\UserModule_Library.vhdl"
+vhdl work "C:\spc\UserFPGA_ADCBox\UserModule_Simulation_Waveform1.vhdl"

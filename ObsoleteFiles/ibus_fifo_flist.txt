@@ -1,0 +1,13 @@
+# Output products list for <ibus_fifo>
+ibus_fifo.asy
+ibus_fifo.ngc
+ibus_fifo.sym
+ibus_fifo.v
+ibus_fifo.veo
+ibus_fifo.vhd
+ibus_fifo.vho
+ibus_fifo.xco
+ibus_fifo_fifo_generator_v3_3_xst_1.ngc_xst.xrpt
+ibus_fifo_fifo_generator_v3_3_xst_1_vhdl.prj
+ibus_fifo_flist.txt
+ibus_fifo_xmdf.tcl

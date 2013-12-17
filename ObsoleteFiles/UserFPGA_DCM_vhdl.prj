@@ -1,0 +1,5 @@
+vhdl work "C:\spc\UserFPGA_8chADCBox\iBus_AddressMap.vhdl"
+vhdl work "C:\spc\UserFPGA_8chADCBox\iBus_Library.vhdl"
+vhdl work "C:\spc\UserFPGA_8chADCBox\UserModule_Library.vhdl"
+vhdl work "C:\spc\UserFPGA_8chADCBox\UserFPGA_DCM_Core.vhd"
+vhdl work "C:\spc\UserFPGA_8chADCBox\UserFPGA_DCM.vhdl"

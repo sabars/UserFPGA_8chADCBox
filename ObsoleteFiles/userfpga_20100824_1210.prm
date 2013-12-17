@@ -1,0 +1,17 @@
+PROMGEN: Xilinx Prom Generator M.53d
+Copyright (c) 1995-2010 Xilinx, Inc.  All rights reserved.
+
+promgen -w -p mcs -c FF -o C:\spc\UserFPGA_8chADCBox//userfpga_20100824_1210.mcs -x xcf08p -ver 0 C:/spc/UserFPGA_8chADCBox/user_top.bit 
+
+PROM C:\spc\UserFPGA_8chADCBox\userfpga_20100824_1210.prm map: TUE 24 AUG 12:13:58 2010
+
+Calculating PROM checksum with fill value ff
+
+Format        Mcs86 (32-bit)
+Size          1024K
+PROM start    0000:0000
+PROM end      000f:ffff
+PROM checksum 068aa3ea
+
+        Addr1        Addr2                     Date File(s)
+    0000:0000    0009:f247     Aug 23 18:53:25 2010 C:/spc/UserFPGA_8chADCBox/user_top.bit

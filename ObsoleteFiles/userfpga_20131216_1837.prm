@@ -1,0 +1,17 @@
+PROMGEN: Xilinx Prom Generator P.49d
+Copyright (c) 1995-2012 Xilinx, Inc.  All rights reserved.
+
+promgen -w -p mcs -c FF -o C:\spc\UserFPGA_8chADCBox\//userfpga_20131216_1837.mcs -x xcf08p -ver 0 C:/spc/UserFPGA_8chADCBox/user_top.bit 
+
+PROM C:\spc\UserFPGA_8chADCBox\userfpga_20131216_1837.prm map: MON 16 DEC 18:38:1 2013
+
+Calculating PROM checksum with fill value ff
+
+Format        Mcs86 (32-bit)
+Size          1024K
+PROM start    0000:0000
+PROM end      000f:ffff
+PROM checksum 075ae321
+
+        Addr1        Addr2                     Date File(s)
+    0000:0000    0009:f247     Dec 16 18:26:46 2013 C:/spc/UserFPGA_8chADCBox/user_top.bit
